@@ -1,9 +1,8 @@
 /* ===== CLASS BOOK SHOP – admin portal ===== */
-const DEFAULT_PASSWORD = "admin123"; // used only until the admin changes it in Settings
+const DEFAULT_PASSWORD = "admin123";
 let allBooks = [], allTx = [], tPage = 1, newImage = "";
 const PER_PAGE = 8;
 
-/* ---------- auth ---------- */
 async function login(e) {
   e.preventDefault();
   const user = $("lUser").value.trim().toLowerCase();
@@ -38,7 +37,6 @@ async function changePassword() {
   btn.disabled = false;
 }
 
-/* ---------- navigation ---------- */
 function start() {
   $("loginView").style.display = "none";
   $("appView").style.display = "flex";
@@ -49,7 +47,6 @@ function show(v) {
   document.querySelectorAll(".side a[data-v]").forEach((a) => a.classList.toggle("active", a.dataset.v === v));
 }
 
-/* ---------- data ---------- */
 async function refresh() {
   try {
     const [b, t] = await Promise.all([dbGet("books"), dbGet("transactions")]);
@@ -72,12 +69,7 @@ function renderBooks() {
   const q = $("bq").value.trim().toLowerCase();
   const list = allBooks.filter((b) => (b.title + " " + b.author).toLowerCase().includes(q));
   $("bookRows").innerHTML = list.length
-    ? list.map((b, i) => `<tr>
-        <td>${i + 1}</td><td><b>${esc(b.title)}</b></td><td>${esc(b.author)}</td>
-        <td>${Number(b.price).toFixed(2)}</td>
-        <td><span class="badge blue">${paidCount(b.id)}</span></td>
-        <td><span class="badge ${b.status === "Inactive" ? "gray" : "green"}">${b.status === "Inactive" ? "Inactive" : "Active"}</span></td>
-        <td><button class="btn sm" onclick="details('${b.id}')">View Details</button></td></tr>`).join("")
+    ? list.map((b, i) => `<tr><td>${i + 1}</td><td><b>${esc(b.title)}</b></td><td>${esc(b.author)}</td><td>${Number(b.price).toFixed(2)}</td><td><span class="badge blue">${paidCount(b.id)}</span></td><td><span class="badge ${b.status === "Inactive" ? "gray" : "green"}">${b.status === "Inactive" ? "Inactive" : "Active"}</span></td><td><button class="btn sm" onclick="details('${b.id}')">View Details</button></td></tr>`).join("")
     : `<tr><td colspan="7" class="empty">No books yet. Click “Add Book”.</td></tr>`;
 }
 
@@ -97,7 +89,6 @@ function renderTx() {
 }
 function goPage(n) { tPage = n; renderTx(); }
 
-/* ---------- add book ---------- */
 function openAdd() {
   newImage = "";
   ["bTitle", "bAuthor", "bPrice"].forEach((i) => ($(i).value = ""));
@@ -108,6 +99,8 @@ function openAdd() {
 function pickImage(input) {
   const f = input.files[0];
   if (!f) return;
+  if (!f.type.startsWith("image/")) return toast("Please select a valid image", true);
+  if (f.size > 4 * 1024 * 1024) return toast("Image must be smaller than 4 MB", true);
   const img = new Image();
   const url = URL.createObjectURL(f);
   img.onload = () => {
@@ -119,6 +112,7 @@ function pickImage(input) {
     $("bPrev").innerHTML = `<img src="${newImage}" alt="preview">Click to change`;
     URL.revokeObjectURL(url);
   };
+  img.onerror = () => { URL.revokeObjectURL(url); toast("Could not read that image", true); };
   img.src = url;
 }
 async function saveBook() {
@@ -127,37 +121,19 @@ async function saveBook() {
   const btn = $("bSave"); btn.disabled = true;
   try {
     await dbPost("books", { title, author, price, image: newImage, status: "Active", createdAt: Date.now() });
-    closeModal("addModal"); toast("Book added"); refresh();
+    closeModal("addModal"); toast("Book added - student page updated"); refresh();
   } catch (e) { toast(e.message, true); }
   btn.disabled = false;
 }
 
-/* ---------- details ---------- */
 function details(id) {
   const b = allBooks.find((x) => x.id === id);
   const tx = allTx.filter((t) => t.bookId === id).sort((x, y) => y.date - x.date);
   $("detBody").innerHTML = `
-    <div class="book-detail-top">
-      ${coverHTML(b)}
-      <div style="flex:1;min-width:220px">
-        <p><span style="color:var(--muted)">Title:</span> <b>${esc(b.title)}</b></p>
-        <p style="margin-top:6px"><span style="color:var(--muted)">Author / Lecturer:</span> <b>${esc(b.author)}</b></p>
-        <p style="margin-top:6px"><span style="color:var(--muted)">Price:</span> <b>${money(b.price)}</b></p>
-        <div class="total-box"><small>Total Students Paid</small><b>${paidCount(id)}</b></div>
-      </div>
-    </div>
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:8px;flex-wrap:wrap">
-      <h3 style="color:var(--blue-d)">👥 Students Who Paid for This Book</h3>
-      <button class="btn sm" onclick="downloadCSV(allTx.filter(t=>t.bookId==='${id}'),'${esc(b.title).replace(/[^\w]+/g, "-")}-students.csv')">⬇ Download List</button>
-    </div>
-    <div class="table-wrap"><table>
-      <thead><tr><th>#</th><th>Student Name</th><th>Index Number</th><th>Payment Date</th><th>Amount (GH₵)</th><th>Status</th></tr></thead>
-      <tbody>${tx.length ? tx.map((t, i) => `<tr><td>${i + 1}</td><td>${esc(t.studentName)}</td><td>${esc(t.indexNumber)}</td><td>${fdate(t.date)}</td><td>${Number(t.amount).toFixed(2)}</td><td><span class="badge green">✔ ${esc(t.status)}</span></td></tr>`).join("") : `<tr><td colspan="6" class="empty">No payments yet.</td></tr>`}</tbody>
-    </table></div>
-    <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap">
-      <button class="btn light sm" onclick="toggleStatus('${id}')">${b.status === "Inactive" ? "Set Active" : "Set Inactive (hide from store)"}</button>
-      <button class="btn danger sm" onclick="removeBook('${id}')">Delete Book</button>
-    </div>`;
+    <div class="book-detail-top">${coverHTML(b)}<div style="flex:1;min-width:220px"><p><span style="color:var(--muted)">Title:</span> <b>${esc(b.title)}</b></p><p style="margin-top:6px"><span style="color:var(--muted)">Author / Lecturer:</span> <b>${esc(b.author)}</b></p><p style="margin-top:6px"><span style="color:var(--muted)">Price:</span> <b>${money(b.price)}</b></p><div class="total-box"><small>Total Students Paid</small><b>${paidCount(id)}</b></div></div></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:8px;flex-wrap:wrap"><h3 style="color:var(--blue-d)">👥 Students Who Paid for This Book</h3><button class="btn sm" onclick="downloadCSV(allTx.filter(t=>t.bookId==='${id}'),'${esc(b.title).replace(/[^\w]+/g, "-")}-students.csv')">��� Download List</button></div>
+    <div class="table-wrap"><table><thead><tr><th>#</th><th>Student Name</th><th>Index Number</th><th>Payment Date</th><th>Amount (GH₵)</th><th>Status</th></tr></thead><tbody>${tx.length ? tx.map((t, i) => `<tr><td>${i + 1}</td><td>${esc(t.studentName)}</td><td>${esc(t.indexNumber)}</td><td>${fdate(t.date)}</td><td>${Number(t.amount).toFixed(2)}</td><td><span class="badge green">✔ ${esc(t.status)}</span></td></tr>`).join("") : `<tr><td colspan="6" class="empty">No payments yet.</td></tr>`}</tbody></table></div>
+    <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap"><button class="btn light sm" onclick="toggleStatus('${id}')">${b.status === "Inactive" ? "Set Active" : "Set Inactive (hide from store)"}</button><button class="btn danger sm" onclick="removeBook('${id}')">Delete Book</button></div>`;
   openModal("detModal");
 }
 async function toggleStatus(id) {
@@ -171,7 +147,6 @@ async function removeBook(id) {
   catch (e) { toast(e.message, true); }
 }
 
-/* ---------- CSV ---------- */
 function downloadCSV(rows, name) {
   if (!rows.length) return toast("Nothing to export", true);
   const head = ["Student Name", "Index Number", "Email", "Book", "Amount (GHS)", "Date", "Reference", "Status"];
