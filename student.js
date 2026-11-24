@@ -1,8 +1,9 @@
 /* ===== CLASS BOOK SHOP – student portal ===== */
 let books = [];
-let current = null;      // book being bought
-let buyer = null;        // {name, index, email}
+let current = null;
+let buyer = null;
 let method = "mobile_money";
+let booksStream = null;
 
 $("yr").textContent = new Date().getFullYear();
 
@@ -50,7 +51,7 @@ async function proceed() {
     const tx = toList(await dbGet("transactions"));
     const dup = tx.find((t) => t.bookId === current.id && t.indexNumber.toLowerCase() === index.toLowerCase() && t.status === "Paid");
     if (dup && !confirm("This index number has already paid for this book. Pay again?")) return;
-  } catch (e) { /* if the check fails, continue to payment */ }
+  } catch (e) { }
   finally { btn.disabled = false; }
 
   buyer = { name, index, email };
@@ -72,17 +73,15 @@ function pay() {
   const handler = PaystackPop.setup({
     key: PAYSTACK_PUBLIC_KEY,
     email: buyer.email,
-    amount: Math.round(Number(current.price) * 100), // pesewas
+    amount: Math.round(Number(current.price) * 100),
     currency: "GHS",
     ref,
     channels: [method],
-    metadata: {
-      custom_fields: [
-        { display_name: "Student Name", variable_name: "student_name", value: buyer.name },
-        { display_name: "Index Number", variable_name: "index_number", value: buyer.index },
-        { display_name: "Book", variable_name: "book", value: current.title },
-      ],
-    },
+    metadata: { custom_fields: [
+      { display_name: "Student Name", variable_name: "student_name", value: buyer.name },
+      { display_name: "Index Number", variable_name: "index_number", value: buyer.index },
+      { display_name: "Book", variable_name: "book", value: current.title },
+    ] },
     callback: function (resp) { recordPayment(resp.reference || ref); },
     onClose: function () { toast("Payment window closed", true); },
   });
@@ -92,16 +91,9 @@ function pay() {
 async function recordPayment(reference) {
   closeModal("payModal");
   const tx = {
-    bookId: current.id,
-    bookTitle: current.title,
-    studentName: buyer.name,
-    indexNumber: buyer.index,
-    email: buyer.email,
-    amount: Number(current.price),
-    method,
-    reference,
-    date: Date.now(),
-    status: "Paid",
+    bookId: current.id, bookTitle: current.title, studentName: buyer.name,
+    indexNumber: buyer.index, email: buyer.email, amount: Number(current.price),
+    method, reference, date: Date.now(), status: "Paid",
   };
   let saved = true;
   try { await dbPost("transactions", tx); } catch (e) { saved = false; }
@@ -127,5 +119,14 @@ async function myPurchases() {
   }
 }
 
+function startLiveUpdates() {
+  loadBooks();
+  if (booksStream) booksStream.close();
+  booksStream = subscribeToBooks((liveBooks) => {
+    books = liveBooks.filter((b) => b.status !== "Inactive");
+    renderBooks();
+  });
+}
+
 document.querySelectorAll(".overlay").forEach((o) => o.addEventListener("click", (e) => { if (e.target === o && o.id !== "payModal") o.classList.remove("show"); }));
-loadBooks();
+startLiveUpdates();

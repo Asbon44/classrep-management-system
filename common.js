@@ -1,9 +1,7 @@
 /* ===== CLASS BOOK SHOP – shared config & helpers ===== */
 const DB_URL = "https://general-b9b11-default-rtdb.firebaseio.com";
-// Public key only. The SECRET key must never be placed in browser code.
 const PAYSTACK_PUBLIC_KEY = "pk_live_b6f97586122addad3266156fe124d7da8113f810";
 
-/* ---- Firebase Realtime Database (REST) ---- */
 async function db(method, path, body) {
   const res = await fetch(`${DB_URL}/${path}.json`, {
     method,
@@ -21,7 +19,6 @@ const dbDelete = (p) => db("DELETE", p);
 
 const toList = (obj) => Object.entries(obj || {}).map(([id, v]) => ({ id, ...v }));
 
-/* ---- utilities ---- */
 const esc = (s) =>
   String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const money = (n) => "GH₵ " + Number(n || 0).toLocaleString("en-GH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -46,5 +43,25 @@ const openModal = (id) => $(id).classList.add("show");
 const closeModal = (id) => $(id).classList.remove("show");
 
 function coverHTML(b) {
-  return `<div class="cover">${b.image ? `<img src="${b.image}" alt="${esc(b.title)}">` : esc(b.title)}</div>`;
+  if (!b?.image) return `<div class="cover">${esc(b?.title)}</div>`;
+  const image = esc(b.image);
+  return `<div class="cover"><img src="${image}" alt="${esc(b.title)}" loading="lazy" referrerpolicy="no-referrer"></div>`;
+}
+
+function subscribeToBooks(onChange) {
+  const url = `${DB_URL}/books.json`;
+  const events = new EventSource(url);
+
+  events.onmessage = (event) => {
+    let value = null;
+    try { value = JSON.parse(event.data); } catch (_) { return; }
+    onChange(toList(value));
+  };
+
+  events.onerror = () => {
+    if (typeof onChange.__retry === "number") clearTimeout(onChange.__retry);
+    onChange.__retry = setTimeout(() => loadBooks(), 5000);
+  };
+
+  return events;
 }
