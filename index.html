@@ -39,8 +39,8 @@
 <main class="s-main" id="books">
   <div class="panel">
     <div class="panel-h">
-      <h2>📘 Available Books</h2>
-      <div class="search"><span>🔍</span><input id="q" placeholder="Search by title or author..." oninput="renderBooks()"></div>
+      <h2>Available Books</h2>
+      <div class="search"><span></span><input id="q" placeholder="Search by title or author..." oninput="renderBooks()"></div>
     </div>
     <div id="grid" class="books-grid"><div class="empty">Loading books…</div></div>
   </div>
@@ -50,10 +50,10 @@
 <!-- Checkout -->
 <div class="overlay" id="checkoutModal">
   <div class="modal">
-    <div class="modal-h"><span>🛒 Checkout</span><button onclick="closeModal('checkoutModal')">×</button></div>
+    <div class="modal-h"><span>S Checkout</span><button onclick="closeModal('checkoutModal')">×</button></div>
     <div class="modal-b">
       <div class="summary" id="coSummary"></div>
-      <div class="field"><label>Your Name <span>*</span></label><input id="coName" placeholder="Enter your full name"></div>
+      <div class="field"><label>Enter Your Name <span>*</span></label><input id="coName" placeholder="Enter your full name"></div>
       <div class="field"><label>Index Number <span>*</span></label><input id="coIndex" placeholder="Enter your index number"></div>
       <div class="field"><label>Email Address <span>*</span></label><input id="coEmail" type="email" placeholder="Enter your email (for receipt)"><div class="hint">Paystack requires an email to process the payment.</div></div>
       <button class="btn block" id="coGo" onclick="proceed()">🔒 Proceed to Paystack</button>
@@ -78,8 +78,8 @@
         <button class="method" data-m="bank_transfer" onclick="pick(this)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10l9-6 9 6M5 10v8M10 10v8M14 10v8M19 10v8M3 20h18"/></svg>Bank Transfer</button>
       </div>
-      <button class="btn block" onclick="pay()">💳 Pay Now</button>
-      <div class="secure">🛡 Your payment is secure with Paystack</div>
+      <button class="btn block" onclick="pay()"> Pay Now</button>
+      <div class="secure"> Your payment is secure with Paystack</div>
     </div>
   </div>
 </div>
