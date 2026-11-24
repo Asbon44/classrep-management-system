@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CLASS BOOK SHOP – Browse &amp; Purchase Your Books</title>
+<link rel="icon" href="logo.svg">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="s-hero">
+  <div class="s-nav">
+    <div class="brand"><img src="logo.svg" alt="logo"><div><b>CLASS BOOK SHOP</b><small>Your academic book store</small></div></div>
+    <nav>
+      <a href="#books">Home</a>
+      <a onclick="openModal('purchasesModal')">My Purchases</a>
+      <a onclick="openModal('helpModal')">Help</a>
+    </nav>
+  </div>
+  <div class="hero-in">
+    <div>
+      <h1>Browse &amp; Purchase<br><span>Your Books</span></h1>
+      <p>Get the best academic books at affordable prices. Pay securely with Mobile Money, card or bank transfer.</p>
+      <a class="btn" href="#books">Shop Now →</a>
+    </div>
+    <svg class="hero-art" viewBox="0 0 200 160" fill="none">
+      <polygon points="100,10 185,42 100,74 15,42" fill="#fff"/>
+      <path d="M45 58v28c0 10 24 18 55 18s55-8 55-18V58l-55 20z" fill="#BFD5FF"/>
+      <line x1="178" y1="45" x2="178" y2="88" stroke="#fff" stroke-width="5" stroke-linecap="round"/>
+      <circle cx="178" cy="94" r="7" fill="#fff"/>
+      <rect x="30" y="120" width="140" height="14" rx="3" fill="#fff"/>
+      <rect x="40" y="134" width="120" height="12" rx="3" fill="#9CC0FF"/>
+      <rect x="25" y="146" width="150" height="12" rx="3" fill="#fff"/>
+    </svg>
+  </div>
+</header>
+
+<main class="s-main" id="books">
+  <div class="panel">
+    <div class="panel-h">
+      <h2>📘 Available Books</h2>
+      <div class="search"><span>🔍</span><input id="q" placeholder="Search by title or author..." oninput="renderBooks()"></div>
+    </div>
+    <div id="grid" class="books-grid"><div class="empty">Loading books…</div></div>
+  </div>
+</main>
+<footer>© <span id="yr"></span> CLASS BOOK SHOP · Payments secured by Paystack · <a href="admin.html" style="color:inherit;font-size:10px;opacity:.55;text-decoration:none">Admin</a></footer>
+
+<!-- Checkout -->
+<div class="overlay" id="checkoutModal">
+  <div class="modal">
+    <div class="modal-h"><span>🛒 Checkout</span><button onclick="closeModal('checkoutModal')">×</button></div>
+    <div class="modal-b">
+      <div class="summary" id="coSummary"></div>
+      <div class="field"><label>Your Name <span>*</span></label><input id="coName" placeholder="Enter your full name"></div>
+      <div class="field"><label>Index Number <span>*</span></label><input id="coIndex" placeholder="Enter your index number"></div>
+      <div class="field"><label>Email Address <span>*</span></label><input id="coEmail" type="email" placeholder="Enter your email (for receipt)"><div class="hint">Paystack requires an email to process the payment.</div></div>
+      <button class="btn block" id="coGo" onclick="proceed()">🔒 Proceed to Paystack</button>
+    </div>
+  </div>
+</div>
+
+<!-- Payment -->
+<div class="overlay" id="payModal">
+  <div class="modal">
+    <div class="modal-h"><span>Secure Payment</span><button onclick="closeModal('payModal')">×</button></div>
+    <div class="modal-b">
+      <div style="text-align:center;font-weight:700">Complete Your Payment</div>
+      <div class="pay-amt" id="payAmt"></div>
+      <div style="text-align:center;color:var(--muted);font-size:13px" id="payFor"></div>
+      <div style="text-align:center;font-size:13px;margin-top:14px;font-weight:600">Choose a payment method</div>
+      <div class="methods">
+        <button class="method sel" data-m="mobile_money" onclick="pick(this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="2" width="10" height="20" rx="2"/><line x1="11" y1="18" x2="13" y2="18"/></svg>Mobile Money</button>
+        <button class="method" data-m="card" onclick="pick(this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>Card</button>
+        <button class="method" data-m="bank_transfer" onclick="pick(this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10l9-6 9 6M5 10v8M10 10v8M14 10v8M19 10v8M3 20h18"/></svg>Bank Transfer</button>
+      </div>
+      <button class="btn block" onclick="pay()">💳 Pay Now</button>
+      <div class="secure">🛡 Your payment is secure with Paystack</div>
+    </div>
+  </div>
+</div>
+
+<!-- Success -->
+<div class="overlay" id="okModal">
+  <div class="modal">
+    <div class="modal-b success">
+      <div class="tick">✓</div>
+      <h2 style="color:var(--blue-d)">Payment Successful</h2>
+      <p style="color:var(--muted);margin:8px 0 14px;font-size:14px" id="okMsg"></p>
+      <button class="btn block" onclick="closeModal('okModal')">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- My purchases -->
+<div class="overlay" id="purchasesModal">
+  <div class="modal wide">
+    <div class="modal-h"><span>My Purchases</span><button onclick="closeModal('purchasesModal')">×</button></div>
+    <div class="modal-b">
+      <div class="field"><label>Enter your Index Number</label>
+        <div style="display:flex;gap:8px"><input id="mpIndex" placeholder="e.g. GFA/2025/001"><button class="btn" onclick="myPurchases()">Search</button></div></div>
+      <div class="table-wrap" id="mpOut"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Help -->
+<div class="overlay" id="helpModal">
+  <div class="modal">
+    <div class="modal-h"><span>Help</span><button onclick="closeModal('helpModal')">×</button></div>
+    <div class="modal-b" style="font-size:14px;line-height:1.7">
+      <p><b>How to buy a book</b></p>
+      <ol style="margin:6px 0 12px 18px"><li>Click <b>Purchase</b> on a book.</li><li>Enter your name, index number and email.</li><li>Choose Mobile Money, Card or Bank Transfer and pay.</li></ol>
+      <p>Use <b>My Purchases</b> to see everything you have paid for. Keep your payment reference in case you need support.</p>
+    </div>
+  </div>
+</div>
+
+<script src="https://js.paystack.co/v1/inline.js"></script>
+<script src="common.js"></script>
+<script src="student.js"></script>
+</body>
+</html>

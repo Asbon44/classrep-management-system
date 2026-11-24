@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CLASS BOOK SHOP – Admin</title>
+<link rel="icon" href="logo.svg">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- Login -->
+<div class="login-wrap" id="loginView">
+  <form class="login-card" onsubmit="login(event)">
+    <img src="logo.svg" alt="logo">
+    <h1>CLASS BOOK SHOP</h1>
+    <p>Admin sign in</p>
+    <div class="field"><label>Username</label><input id="lUser" value="admin" autocomplete="username"></div>
+    <div class="field"><label>Password</label><input id="lPass" type="password" autocomplete="current-password" placeholder="Enter password"></div>
+    <button class="btn block" id="lBtn">Login</button>
+    <p style="margin:14px 0 0"><a href="index.html" style="color:var(--blue)">← Back to store</a></p>
+  </form>
+</div>
+
+<!-- App -->
+<div class="layout" id="appView" style="display:none">
+  <aside class="side">
+    <div class="brand"><img src="logo.svg" alt="logo"><div><b>CLASS BOOK SHOP</b><small>Admin Portal</small></div></div>
+    <a data-v="dashboard" class="active" onclick="show('dashboard')">🏠 Dashboard</a>
+    <a onclick="openAdd()">➕ Add Book</a>
+    <a data-v="transactions" onclick="show('transactions')">🔁 Transactions</a>
+    <a data-v="settings" onclick="show('settings')">⚙️ Settings</a>
+    <a onclick="logout()">🚪 Logout</a>
+    <div class="foot">CLASS BOOK SHOP<br>Book Store System</div>
+  </aside>
+
+  <main class="content">
+    <!-- Dashboard -->
+    <section id="v-dashboard">
+      <div class="topbar"><div><h1>Welcome, Admin 👋</h1><p>Manage books and track sales</p></div></div>
+      <div class="stats">
+        <div class="stat"><div class="ic">📘</div><small>Total Books</small><b id="stBooks">0</b></div>
+        <div class="stat"><div class="ic">👥</div><small>Total Students</small><b id="stStudents">0</b></div>
+        <div class="stat"><div class="ic">💰</div><small>Total Revenue</small><b id="stRev">GH₵ 0</b></div>
+        <div class="stat"><div class="ic">✅</div><small>Total Purchases</small><b id="stPur">0</b></div>
+      </div>
+      <div class="panel">
+        <div class="panel-h">
+          <h2>📘 Available Books</h2>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <div class="search"><span>🔍</span><input id="bq" placeholder="Search books..." oninput="renderBooks()"></div>
+            <button class="btn" onclick="openAdd()">+ Add Book</button>
+          </div>
+        </div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>#</th><th>Book Title</th><th>Author / Lecturer</th><th>Price (GH₵)</th><th>Students Paid</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody id="bookRows"></tbody>
+        </table></div>
+      </div>
+    </section>
+
+    <!-- Transactions -->
+    <section id="v-transactions" style="display:none">
+      <div class="topbar"><div><h1>Transaction History</h1><p>All student payments</p></div></div>
+      <div class="panel">
+        <div class="panel-h">
+          <div class="search" style="flex:1;max-width:460px"><span>🔍</span><input id="tq" placeholder="Search by student name or index number..." oninput="tPage=1;renderTx()"></div>
+          <button class="btn light" onclick="downloadCSV(allTx, 'all-transactions.csv')">⬇ Export CSV</button>
+        </div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>#</th><th>Student Name</th><th>Index No.</th><th>Book Title</th><th>Amount (GH₵)</th><th>Date</th><th>Status</th></tr></thead>
+          <tbody id="txRows"></tbody>
+        </table></div>
+        <div class="pager" id="pager"></div>
+      </div>
+    </section>
+
+    <!-- Settings -->
+    <section id="v-settings" style="display:none">
+      <div class="topbar"><div><h1>Settings</h1><p>Manage your admin account</p></div></div>
+      <div class="panel" style="max-width:460px">
+        <h2 style="color:var(--blue-d);margin-bottom:16px;font-size:18px">🔑 Change Password</h2>
+        <div class="field"><label>Current Password</label><input id="cpOld" type="password" autocomplete="current-password"></div>
+        <div class="field"><label>New Password</label><input id="cpNew" type="password" autocomplete="new-password"><div class="hint">At least 6 characters.</div></div>
+        <div class="field"><label>Confirm New Password</label><input id="cpNew2" type="password" autocomplete="new-password"></div>
+        <button class="btn" id="cpBtn" onclick="changePassword()">Update Password</button>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- Add book modal -->
+<div class="overlay" id="addModal">
+  <div class="modal">
+    <div class="modal-h"><span>📘 Add New Book</span><button onclick="closeModal('addModal')">×</button></div>
+    <div class="modal-b">
+      <div class="preview-up" onclick="$('bImg').click()" id="bPrev">🖼 Upload Book Image<br><small>(Click to browse)</small></div>
+      <input type="file" id="bImg" accept="image/*" hidden onchange="pickImage(this)">
+      <div class="field"><label>Book Title <span>*</span></label><input id="bTitle" placeholder="Enter book title"></div>
+      <div class="field"><label>Author / Lecturer <span>*</span></label><input id="bAuthor" placeholder="Enter author or lecturer"></div>
+      <div class="field"><label>Price (GH₵) <span>*</span></label><input id="bPrice" type="number" min="1" step="0.01" placeholder="Enter price"></div>
+    </div>
+    <div class="modal-f"><button class="btn light" onclick="closeModal('addModal')">Cancel</button><button class="btn" id="bSave" onclick="saveBook()">Add Book</button></div>
+  </div>
+</div>
+
+<!-- Details modal -->
+<div class="overlay" id="detModal">
+  <div class="modal wide">
+    <div class="modal-h"><span>📖 Book Details</span><button onclick="closeModal('detModal')">×</button></div>
+    <div class="modal-b" id="detBody"></div>
+    <div class="modal-f"><button class="btn light" onclick="closeModal('detModal')">Close</button></div>
+  </div>
+</div>
+
+<script src="common.js"></script>
+<script src="admin.js"></script>
+</body>
+</html>

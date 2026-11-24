@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2F6BFF"/>
+      <stop offset="1" stop-color="#0A2F7A"/>
+    </linearGradient>
+  </defs>
+  <circle cx="60" cy="60" r="56" fill="url(#g)"/>
+  <circle cx="60" cy="60" r="56" fill="none" stroke="#fff" stroke-width="3"/>
+  <!-- graduation cap -->
+  <polygon points="60,18 98,34 60,50 22,34" fill="#fff"/>
+  <path d="M38 43 v12 c0 5 10 9 22 9 s22-4 22-9 V43 l-22 9 z" fill="#DCE8FF"/>
+  <line x1="94" y1="36" x2="94" y2="54" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="94" cy="57" r="3.5" fill="#fff"/>
+  <!-- open book -->
+  <path d="M60 72 C50 66 34 66 22 70 v26 c12-4 28-4 38 2 z" fill="#fff"/>
+  <path d="M60 72 C70 66 86 66 98 70 v26 c-12-4-28-4-38 2 z" fill="#EAF1FF"/>
+  <line x1="60" y1="72" x2="60" y2="98" stroke="#2F6BFF" stroke-width="2.5"/>
+</svg>
